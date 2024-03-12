@@ -1,0 +1,1254 @@
+# -*- coding: mbcs -*-
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    1.0, 1.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, 0.005), 
+    point2=(1.21, 0.995))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.99, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(0.0, 
+    0.0, -0.21))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.1)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 1.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=12.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, 0.005), 
+    point2=(1.21, 0.995))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.99, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(0.0, 
+    0.0, -0.21))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.1)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.005, -0.21), 
+    point2=(0.995, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.99, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(0.0, 
+    0.0, 0.005))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.1)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.005, -0.21), 
+    point2=(0.995, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.99, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(0.0, 
+    0.0, 5.505))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.1)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+#*mdb.models['MM'].parts['NanComp'].generateMesh()
+#* Command Interrupted
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.005, -0.21), 
+    point2=(0.995, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.99, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(0.0, 
+    0.0, 5.505))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.005, -0.21), 
+    point2=(0.995, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.99, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(0.0, 
+    0.0, 0.0))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, -0.21), 
+    point2=(1.21, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.98, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(5.29, 
+    5.29, 0.01))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, -0.21), 
+    point2=(1.21, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.98, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(6.0, 
+    6.0, 0.5))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, -0.21), 
+    point2=(1.21, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.98, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(5.29, 
+    5.29, -0.48))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, -0.21), 
+    point2=(1.21, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.98, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(4.58, 
+    4.58, 0.01))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, -0.21), 
+    point2=(1.21, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.98, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(5.29, 
+    5.29, 0.01))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(-0.21, -0.21), 
+    point2=(1.21, 1.21))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.9, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].Material(name='MatrixMat')
+mdb.models['MM'].materials['MatrixMat'].Diffusivity(table=((1.0, 0.0), ))
+mdb.models['MM'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].Material(name='NPMat')
+mdb.models['MM'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['MM'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['MM'].HomogeneousSolidSection(material='MatrixMat', name='MatSec', 
+    thickness=None)
+mdb.models['MM'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['MM'].parts['NP'].Set(cells=
+    mdb.models['MM'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['Matrix'].Set(cells=
+    mdb.models['MM'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['MM'].parts['Matrix'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['MM'].parts['NP'])
+mdb.models['MM'].rootAssembly.translate(instanceList=('NP-1', ), vector=(5.29, 
+    5.29, 0.05))
+mdb.models['MM'].rootAssembly.Instance(dependent=ON, name='Matrix-1', part=
+    mdb.models['MM'].parts['Matrix'])
+mdb.models['MM'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['MM'].rootAssembly.instances['NP-1'], 
+    mdb.models['MM'].rootAssembly.instances['Matrix-1']), keepIntersections=ON, 
+    name='NanComp', originalInstances=SUPPRESS)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-2')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].parts['NanComp'].Set(cells=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    name='Set-3')
+mdb.models['MM'].parts['NanComp'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['MM'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].MassDiffusionStep(amplitude=RAMP, name='MassDiffusionStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-3')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['MM'].rootAssembly.sets['Set-3'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-4')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['MM'].rootAssembly.sets['Set-4'])
+mdb.models['MM'].FieldOutputRequest(createStepName='MassDiffusionStep', name=
+    'F-Output-2', variables=('IVOL', ))
+mdb.models['MM'].rootAssembly.makeDependent(instances=(
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['MM'].parts['NanComp'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.5)
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', ), ), 
+    technique=FREE)
+mdb.models['MM'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['MM'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['MM'].parts['NanComp'].generateMesh()
+mdb.models['MM'].rootAssembly.regenerate()
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#10 ]', ), ), name='Set-5')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-3', region=
+    mdb.models['MM'].rootAssembly.sets['Set-5'])
+mdb.models['MM'].rootAssembly.Set(faces=
+    mdb.models['MM'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#20 ]', ), ), name='Set-6')
+mdb.models['MM'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-4', region=
+    mdb.models['MM'].rootAssembly.sets['Set-6'])
+# Save by u2123472 on 2024_03_04-16.14.51; build 2023 2022_09_28-19.11.55 183150

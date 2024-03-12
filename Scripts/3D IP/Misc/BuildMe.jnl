@@ -1,0 +1,155 @@
+# Save by u2123472 on 2024_02_22-18.12.26; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), 
+    point2=(10.0, 1.0))
+mdb.models['Model-1'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['Matrix'].BaseSolidExtrude(depth=10.0, sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(3.65, 0.365), 
+    point2=(6.35, 0.635))
+mdb.models['Model-1'].Part(dimensionality=THREE_D, name='NP', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['NP'].BaseSolidExtrude(depth=2.7, sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(3.5, 0.35), 
+    point2=(6.5, 0.65))
+mdb.models['Model-1'].Part(dimensionality=THREE_D, name='IP', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['IP'].BaseSolidExtrude(depth=4.0, sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+# Save by u2123472 on 2024_02_22-18.14.15; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].Material(name='MatrixMat')
+mdb.models['Model-1'].materials['MatrixMat'].Diffusivity(table=((0.005, 0.0), 
+    ))
+mdb.models['Model-1'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['Model-1'].Material(name='NPMat')
+mdb.models['Model-1'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['Model-1'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['Model-1'].Material(name='IPMat')
+mdb.models['Model-1'].materials['IPMat'].Diffusivity(table=((0.5, 0.0), ))
+mdb.models['Model-1'].materials['IPMat'].Solubility(table=((1.0, ), ))
+mdb.models['Model-1'].HomogeneousSolidSection(material='MatrixMat', name=
+    'MatSec', thickness=None)
+mdb.models['Model-1'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['Model-1'].HomogeneousSolidSection(material='IPMat', name='IPSec', 
+    thickness=None)
+mdb.models['Model-1'].parts['IP'].Set(cells=
+    mdb.models['Model-1'].parts['IP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['Model-1'].parts['IP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['IP'].sets['Set-1'], sectionName='IPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].parts['Matrix'].Set(cells=
+    mdb.models['Model-1'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', 
+    ), ), name='Set-1')
+mdb.models['Model-1'].parts['Matrix'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].parts['NP'].Set(cells=
+    mdb.models['Model-1'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['Model-1'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['Model-1'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['Model-1'].parts['NP'])
+mdb.models['Model-1'].rootAssembly.translate(instanceList=('NP-1', ), vector=(
+    -6.35, -0.635, 0.1))
+mdb.models['Model-1'].rootAssembly.Instance(dependent=ON, name='IP-1', part=
+    mdb.models['Model-1'].parts['IP'])
+mdb.models['Model-1'].rootAssembly.translate(instanceList=('IP-1', ), vector=(
+    6.5, 0.65, -0.1))
+mdb.models['Model-1'].rootAssembly.Instance(dependent=ON, name='Matrix-1', 
+    part=mdb.models['Model-1'].parts['Matrix'])
+mdb.models['Model-1'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['Model-1'].rootAssembly.instances['NP-1'], 
+    mdb.models['Model-1'].rootAssembly.instances['IP-1'], 
+    mdb.models['Model-1'].rootAssembly.instances['Matrix-1']), 
+    keepIntersections=ON, name='NanComp', originalInstances=SUPPRESS)
+mdb.models['Model-1'].parts['NanComp'].Set(cells=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#4 ]', 
+    ), ), name='Set-2')
+mdb.models['Model-1'].parts['NanComp'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NanComp'].sets['Set-2'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].parts['NanComp'].Set(cells=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', 
+    ), ), name='Set-3')
+mdb.models['Model-1'].parts['NanComp'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NanComp'].sets['Set-3'], sectionName='IPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].parts['NanComp'].Set(cells=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', 
+    ), ), name='Set-4')
+mdb.models['Model-1'].parts['NanComp'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NanComp'].sets['Set-4'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].rootAssembly.regenerate()
+mdb.models['Model-1'].MassDiffusionStep(amplitude=RAMP, name='MDStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['Model-1'].rootAssembly.Set(faces=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#2 ]', ), ), name='Set-1')
+mdb.models['Model-1'].ConcentrationBC(amplitude=UNSET, createStepName='MDStep', 
+    distributionType=UNIFORM, fieldName='', fixed=OFF, magnitude=1.0, name=
+    'BC-1', region=mdb.models['Model-1'].rootAssembly.sets['Set-1'])
+mdb.models['Model-1'].rootAssembly.Set(faces=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#8 ]', ), ), name='Set-2')
+mdb.models['Model-1'].ConcentrationBC(amplitude=UNSET, createStepName='MDStep', 
+    distributionType=UNIFORM, fieldName='', fixed=OFF, magnitude=0.0, name=
+    'BC-2', region=mdb.models['Model-1'].rootAssembly.sets['Set-2'])
+mdb.models['Model-1'].parts['NanComp'].seedPart(deviationFactor=0.1, 
+    minSizeFactor=0.1, size=0.1)
+mdb.models['Model-1'].parts['NanComp'].seedPart(deviationFactor=0.1, 
+    minSizeFactor=0.1, size=0.5)
+mdb.models['Model-1'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#7 ]', 
+    ), ), technique=FREE)
+mdb.models['Model-1'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=C3D20R, elemLibrary=STANDARD), ElemType(elemCode=C3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=C3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#7 ]', ), ), ))
+mdb.models['Model-1'].parts['NanComp'].generateMesh()
+# Save by u2123472 on 2024_02_22-18.46.36; build 2023 2022_09_28-19.11.55 183150

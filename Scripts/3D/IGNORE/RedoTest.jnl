@@ -1,0 +1,87 @@
+# Save by u2123472 on 2024_02_21-15.37.09; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), 
+    point2=(1.0, 1.0))
+mdb.models['Model-1'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+# Save by u2123472 on 2024_02_21-15.41.03; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].Material(name='Matrix')
+mdb.models['Model-1'].materials['Matrix'].Diffusivity(table=((0.005, 0.0), ))
+mdb.models['Model-1'].materials['Matrix'].Solubility(table=((1.0, ), ))
+mdb.models['Model-1'].Material(name='NPMat')
+mdb.models['Model-1'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['Model-1'].materials['NPMat'].Solubility(table=((1.0, ), ))
+mdb.models['Model-1'].HomogeneousSolidSection(material='Matrix', name='MatSec', 
+    thickness=None)
+mdb.models['Model-1'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['Model-1'].parts['Matrix'].Set(cells=
+    mdb.models['Model-1'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', 
+    ), ), name='Set-1')
+mdb.models['Model-1'].parts['Matrix'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(0.365, 0.365), 
+    point2=(0.635, 0.635))
+mdb.models['Model-1'].Part(dimensionality=THREE_D, name='NP', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['NP'].BaseSolidExtrude(depth=0.27, sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].parts['NP'].Set(cells=
+    mdb.models['Model-1'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['Model-1'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+	
+	
+mdb.models['Model-1'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['Model-1'].rootAssembly.Instance(dependent=ON, name='NP-1', part=
+    mdb.models['Model-1'].parts['NP'])
+mdb.models['Model-1'].rootAssembly.translate(instanceList=('NP-1', ), vector=(
+    0.0, 0.0, 0.365))
+mdb.models['Model-1'].rootAssembly.Instance(dependent=ON, name='Matrix-1', 
+    part=mdb.models['Model-1'].parts['Matrix'])
+mdb.models['Model-1'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['Model-1'].rootAssembly.instances['NP-1'], 
+    mdb.models['Model-1'].rootAssembly.instances['Matrix-1']), 
+    keepIntersections=ON, name='NanComp', originalInstances=SUPPRESS)
+	
+	
+# Save by u2123472 on 2024_02_21-15.46.44; build 2023 2022_09_28-19.11.55 183150
+# Save by u2123472 on 2024_02_21-15.46.44; build 2023 2022_09_28-19.11.55 183150
+# Save by u2123472 on 2024_02_21-15.46.44; build 2023 2022_09_28-19.11.55 183150
+# Save by u2123472 on 2024_02_21-15.46.45; build 2023 2022_09_28-19.11.55 183150

@@ -1,0 +1,198 @@
+# Save by u2123472 on 2024_02_05-18.05.44; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), 
+    point2=(1.0, 1.0))
+mdb.models['Model-1'].Part(dimensionality=TWO_D_PLANAR, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['Matrix'].BaseShell(sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(0.1, 0.1), 
+    point2=(0.2, 0.2))
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(
+    0.275879979133606, 0.227531298995018), point2=(0.400162518024445, 
+    0.329310119152069))
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(
+    0.118891477584839, 0.367150992155075), point2=(0.244482278823853, 
+    0.483283251523972))
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(
+    0.36091536283493, 0.55374550819397), point2=(0.496972143650055, 
+    0.675097227096558))
+	
+	
+mdb.models['Model-1'].Part(dimensionality=TWO_D_PLANAR, name='NPs', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['NPs'].BaseShell(sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].Material(name='Matrix')
+mdb.models['Model-1'].materials['Matrix'].Diffusivity(table=((0.005, 0.0), ))
+mdb.models['Model-1'].Material(name='NPMat')
+mdb.models['Model-1'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['Model-1'].materials['NPMat'].Solubility(table=((0.0, ), ))
+
+
+
+
+mdb.models['Model-1'].materials.changeKey(fromName='Matrix', toName=
+    'MatrixMat')
+mdb.models['Model-1'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['Model-1'].materials['NPMat'].solubility.setValues(table=((1.0, ), 
+    ))
+	
+	
+mdb.models['Model-1'].HomogeneousSolidSection(material='MatrixMat', name=
+    'MatSec', thickness=None)
+mdb.models['Model-1'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['Model-1'].parts['NPs'].Set(faces=
+    mdb.models['Model-1'].parts['NPs'].faces.getSequenceFromMask(('[#f ]', ), )
+    , name='Set-1')
+mdb.models['Model-1'].parts['NPs'].SectionAssignment(offset=0.0, offsetField=''
+    , offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NPs'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].parts['Matrix'].Set(faces=
+    mdb.models['Model-1'].parts['Matrix'].faces.getSequenceFromMask(('[#1 ]', 
+    ), ), name='Set-1')
+	
+	
+mdb.models['Model-1'].parts['Matrix'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['Model-1'].rootAssembly.Instance(dependent=ON, name='Matrix-1', 
+    part=mdb.models['Model-1'].parts['Matrix'])
+mdb.models['Model-1'].rootAssembly.Instance(dependent=ON, name='NPs-1', part=
+    mdb.models['Model-1'].parts['NPs'])
+	
+	
+	
+mdb.models['Model-1'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['Model-1'].rootAssembly.instances['Matrix-1'], 
+    mdb.models['Model-1'].rootAssembly.instances['NPs-1']), keepIntersections=
+    ON, name='NanoComp', originalInstances=SUPPRESS)
+	
+	
+mdb.models['Model-1'].parts['NanoComp'].Set(faces=
+    mdb.models['Model-1'].parts['NanoComp'].faces.getSequenceFromMask(('[#1 ]', 
+    ), ), name='Set-2')
+	
+mdb.models['Model-1'].parts['NanoComp'].sectionAssignments[0].setValues(offset=
+    0.0, offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NanoComp'].sets['Set-2'])
+	
+	
+mdb.models['Model-1'].parts['NanoComp'].Set(faces=
+    mdb.models['Model-1'].parts['NanoComp'].faces.getSequenceFromMask((
+    '[#1e ]', ), ), name='Set-3')
+mdb.models['Model-1'].parts['NanoComp'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NanoComp'].sets['Set-3'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].rootAssembly.regenerate()
+
+
+mdb.models['Model-1'].MassDiffusionStep(amplitude=RAMP, name='MassDiffStep', 
+    previous='Initial', response=STEADY_STATE)
+mdb.models['Model-1'].rootAssembly.Set(edges=
+    mdb.models['Model-1'].rootAssembly.instances['NanoComp-1'].edges.getSequenceFromMask(
+    ('[#4 ]', ), ), name='Set-1')
+mdb.models['Model-1'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['Model-1'].rootAssembly.sets['Set-1'])
+mdb.models['Model-1'].rootAssembly.Set(edges=
+    mdb.models['Model-1'].rootAssembly.instances['NanoComp-1'].edges.getSequenceFromMask(
+    ('[#1 ]', ), ), name='Set-2')
+mdb.models['Model-1'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['Model-1'].rootAssembly.sets['Set-2'])
+mdb.models['Model-1'].rootAssembly.makeIndependent(instances=(
+    mdb.models['Model-1'].rootAssembly.instances['NanoComp-1'], ))
+mdb.models['Model-1'].rootAssembly.seedPartInstance(deviationFactor=0.1, 
+    minSizeFactor=0.1, regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanoComp-1'], ), size=0.1)
+mdb.models['Model-1'].rootAssembly.seedPartInstance(deviationFactor=0.1, 
+    minSizeFactor=0.1, regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanoComp-1'], ), size=0.05)
+mdb.models['Model-1'].rootAssembly.generateMesh(regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanoComp-1'], ))
+mdb.models['Model-1'].rootAssembly.setElementType(elemTypes=(ElemType(
+    elemCode=DC2D4, elemLibrary=STANDARD), ElemType(elemCode=DC2D3, 
+    elemLibrary=STANDARD)), regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanoComp-1'].faces.getSequenceFromMask(
+    ('[#1f ]', ), ), ))
+mdb.Job(atTime=None, contactPrint=OFF, description='', echoPrint=OFF, 
+    explicitPrecision=SINGLE, getMemoryFromAnalysis=True, historyPrint=OFF, 
+    memory=90, memoryUnits=PERCENTAGE, model='Model-1', modelPrint=OFF, 
+    multiprocessingMode=DEFAULT, name='Job-1', nodalOutputPrecision=SINGLE, 
+    numCpus=1, numGPUs=0, numThreadsPerMpiProcess=1, queue=None, resultsFormat=
+    ODB, scratch='', type=ANALYSIS, userSubroutine='', waitHours=0, 
+    waitMinutes=0)
+# Save by u2123472 on 2024_02_05-18.16.00; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.Job(description='MassDiffusionTest', model='MM', name='MassDiffusionJob')
+#* Job must refer to a valid model.
+mdb.jobs['Job-1'].submit(consistencyChecking=OFF)
+mdb.jobs['Job-1']._Message(STARTED, {'phase': BATCHPRE_PHASE, 
+    'clientHost': 'SOEVDI-SH-56', 'handle': 0, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ODB_FILE, {'phase': BATCHPRE_PHASE, 
+    'file': 'C:\\Users\\u2123472\\Job-1.odb', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(COMPLETED, {'phase': BATCHPRE_PHASE, 
+    'message': 'Analysis phase complete', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(STARTED, {'phase': STANDARD_PHASE, 
+    'clientHost': 'SOEVDI-SH-56', 'handle': 19480, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(STEP, {'phase': STANDARD_PHASE, 'stepId': 1, 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ODB_FRAME, {'phase': STANDARD_PHASE, 'step': 0, 
+    'frame': 0, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(MEMORY_ESTIMATE, {'phase': STANDARD_PHASE, 
+    'jobName': 'Job-1', 'memory': 24.0})
+mdb.jobs['Job-1']._Message(PHYSICAL_MEMORY, {'phase': STANDARD_PHASE, 
+    'physical_memory': 114687.0, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(MINIMUM_MEMORY, {'minimum_memory': 17.0, 
+    'phase': STANDARD_PHASE, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ODB_FRAME, {'phase': STANDARD_PHASE, 'step': 0, 
+    'frame': 1, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(STATUS, {'totalTime': 1.0, 'attempts': 1, 
+    'timeIncrement': 1.0, 'increment': 1, 'stepTime': 1.0, 'step': 1, 
+    'jobName': 'Job-1', 'severe': 0, 'iterations': 1, 'phase': STANDARD_PHASE, 
+    'equilibrium': 1})
+mdb.jobs['Job-1']._Message(END_STEP, {'phase': STANDARD_PHASE, 'stepId': 1, 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(COMPLETED, {'phase': STANDARD_PHASE, 
+    'message': 'Analysis phase complete', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(JOB_COMPLETED, {'time': 'Mon Feb  5 18:16:45 2024', 
+    'jobName': 'Job-1'})
+# Save by u2123472 on 2024_02_05-18.17.06; build 2023 2022_09_28-19.11.55 183150

@@ -1,0 +1,45 @@
+# -*- coding: mbcs -*-
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.Model(name='MM')
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), point2=(
+    12.0, 12.0))
+mdb.models['MM'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['MM'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+mdb.models['MM'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['MM'].sketches['__profile__'].Line(point1=(6.0, 8.461), point2=(
+    8.462, 10.692))
+mdb.models['MM'].sketches['__profile__'].Line(point1=(8.462, 10.692), point2=(
+    10.693, 8.462))
+mdb.models['MM'].sketches['__profile__'].Line(point1=(10.693, 8.462), point2=(
+    10.693, 3.538))
+mdb.models['MM'].sketches['__profile__'].VerticalConstraint(addUndoState=False, 
+    entity=mdb.models['MM'].sketches['__profile__'].geometry[4])
+mdb.models['MM'].sketches['__profile__'].Line(point1=(10.693, 3.538), point2=(
+    8.462, 1.308))
+mdb.models['MM'].sketches['__profile__'].Line(point1=(8.462, 1.308), point2=(
+    6.0, 3.539))
+mdb.models['MM'].sketches['__profile__'].Line(point1=(6.0, 3.539), point2=(6.0, 
+    8.461))
+mdb.models['MM'].sketches['__profile__'].VerticalConstraint(addUndoState=False, 
+    entity=mdb.models['MM'].sketches['__profile__'].geometry[7])
+mdb.models['MM'].Part(dimensionality=THREE_D, name='NP', type=DEFORMABLE_BODY)
+mdb.models['MM'].parts['NP'].BaseSolidExtrude(depth=0.223, sketch=
+    mdb.models['MM'].sketches['__profile__'])
+del mdb.models['MM'].sketches['__profile__']
+# Save by u2123472 on 2024_02_27-01.13.54; build 2023 2022_09_28-19.11.55 183150

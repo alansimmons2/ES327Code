@@ -1,0 +1,417 @@
+# Save by u2123472 on 2024_02_15-15.18.40; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), 
+    point2=(1.0, 1.0))
+mdb.models['Model-1'].Part(dimensionality=THREE_D, name='Matrix', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['Matrix'].BaseSolidExtrude(depth=1.0, sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+
+mdb.models['Model-1'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Model-1'].sketches['__profile__'].rectangle(point1=(0.1, 0.1), 
+    point2=(0.2, 0.2))
+mdb.models['Model-1'].Part(dimensionality=THREE_D, name='NP', type=
+    DEFORMABLE_BODY)
+mdb.models['Model-1'].parts['NP'].BaseSolidExtrude(depth=0.1, sketch=
+    mdb.models['Model-1'].sketches['__profile__'])
+del mdb.models['Model-1'].sketches['__profile__']
+
+
+
+
+
+
+mdb.models['Model-1'].Material(name='MatrixMat')
+mdb.models['Model-1'].materials['MatrixMat'].Diffusivity(table=((0.005, 0.0), 
+    ))
+mdb.models['Model-1'].materials['MatrixMat'].Solubility(table=((1.0, ), ))
+mdb.models['Model-1'].Material(name='NPMat')
+mdb.models['Model-1'].materials['NPMat'].Diffusivity(table=((0.0, 0.0), ))
+mdb.models['Model-1'].materials['NPMat'].Solubility(table=((1.0, ), ))
+
+
+
+
+mdb.models['Model-1'].HomogeneousSolidSection(material='MatrixMat', name=
+    'MatSec', thickness=None)
+mdb.models['Model-1'].HomogeneousSolidSection(material='NPMat', name='NPSec', 
+    thickness=None)
+mdb.models['Model-1'].parts['NP'].Set(cells=
+    mdb.models['Model-1'].parts['NP'].cells.getSequenceFromMask(('[#1 ]', ), ), 
+    name='Set-1')
+mdb.models['Model-1'].parts['NP'].SectionAssignment(offset=0.0, offsetField='', 
+    offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NP'].sets['Set-1'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].parts['Matrix'].Set(cells=
+    mdb.models['Model-1'].parts['Matrix'].cells.getSequenceFromMask(('[#1 ]', 
+    ), ), name='Set-1')
+mdb.models['Model-1'].parts['Matrix'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['Matrix'].sets['Set-1'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+
+
+# Save by u2123472 on 2024_02_15-15.24.34; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+
+
+
+
+mdb.models['Model-1'].rootAssembly.DatumCsysByDefault(CARTESIAN)
+mdb.models['Model-1'].rootAssembly.Instance(dependent=OFF, name='Matrix-1', 
+    part=mdb.models['Model-1'].parts['Matrix'])
+
+mdb.models['Model-1'].rootAssembly.Instance(dependent=OFF, name='NP-1', part=
+    mdb.models['Model-1'].parts['NP'])
+mdb.models['Model-1'].rootAssembly.InstanceFromBooleanMerge(domain=GEOMETRY, 
+    instances=(mdb.models['Model-1'].rootAssembly.instances['Matrix-1'], 
+    mdb.models['Model-1'].rootAssembly.instances['NP-1']), keepIntersections=ON
+    , name='NanComp', originalInstances=SUPPRESS)
+mdb.models['Model-1'].parts['NanComp'].Set(cells=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', 
+    ), ), name='Set-2')
+mdb.models['Model-1'].parts['NanComp'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NanComp'].sets['Set-2'], sectionName='NPSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].parts['NanComp'].Set(cells=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', 
+    ), ), name='Set-3')
+mdb.models['Model-1'].parts['NanComp'].SectionAssignment(offset=0.0, 
+    offsetField='', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Model-1'].parts['NanComp'].sets['Set-3'], sectionName='MatSec', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Model-1'].rootAssembly.regenerate()
+
+
+
+
+
+
+
+mdb.models['Model-1'].MassDiffusionStep(amplitude=RAMP, name=
+    'MassDiffusionStep', previous='Initial', response=STEADY_STATE)
+mdb.models['Model-1'].rootAssembly.Set(faces=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#80 ]', ), ), name='Set-1')
+mdb.models['Model-1'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=1.0, name='BC-1', region=
+    mdb.models['Model-1'].rootAssembly.sets['Set-1'])
+mdb.models['Model-1'].rootAssembly.Set(faces=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#200 ]', ), ), name='Set-2')
+mdb.models['Model-1'].ConcentrationBC(amplitude=UNSET, createStepName=
+    'MassDiffusionStep', distributionType=UNIFORM, fieldName='', fixed=OFF, 
+    magnitude=0.0, name='BC-2', region=
+    mdb.models['Model-1'].rootAssembly.sets['Set-2'])
+
+mdb.models['Model-1'].rootAssembly.makeIndependent(instances=(
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'], ))
+
+
+
+
+mdb.models['Model-1'].rootAssembly.setElementType(elemTypes=(ElemType(
+    elemCode=DC3D8, elemLibrary=STANDARD), ElemType(elemCode=DC3D6, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D4, elemLibrary=STANDARD)), 
+    regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].cells.getSequenceFromMask(
+    ('[#3 ]', ), ), ))
+mdb.models['Model-1'].rootAssembly.seedPartInstance(deviationFactor=0.1, 
+    minSizeFactor=0.1, regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'], ), size=0.1)
+mdb.models['Model-1'].rootAssembly.generateMesh(regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['Model-1'].rootAssembly.deleteMesh(regions=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].cells.getSequenceFromMask(
+    ('[#1 ]', ), ))
+mdb.models['Model-1'].ConstrainedSketch(gridSpacing=0.07, name='__profile__', 
+    sheetSize=2.82, transform=
+    mdb.models['Model-1'].rootAssembly.MakeSketchTransform(
+    sketchPlane=mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces[11], 
+    sketchPlaneSide=SIDE1, 
+    sketchUpEdge=mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].edges[23], 
+    sketchOrientation=RIGHT, origin=(0.503535, 0.503535, 0.0)))
+mdb.models['Model-1'].rootAssembly.projectReferencesOntoSketch(filter=
+    COPLANAR_EDGES, sketch=mdb.models['Model-1'].sketches['__profile__'])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.303535, 0.403535), 
+    point2=(0.303535, -0.49646500004556))
+mdb.models['Model-1'].sketches['__profile__'].VerticalConstraint(addUndoState=
+    False, entity=mdb.models['Model-1'].sketches['__profile__'].geometry[14])
+mdb.models['Model-1'].sketches['__profile__'].PerpendicularConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[2], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[14])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[8], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[13])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.403535, 0.303535), 
+    point2=(0.403535, -0.49646500004556))
+mdb.models['Model-1'].sketches['__profile__'].VerticalConstraint(addUndoState=
+    False, entity=mdb.models['Model-1'].sketches['__profile__'].geometry[15])
+mdb.models['Model-1'].sketches['__profile__'].PerpendicularConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[4], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[15])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[9], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[13])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.403535, 0.403535), 
+    point2=(0.403535, 0.50353499995444))
+mdb.models['Model-1'].sketches['__profile__'].VerticalConstraint(addUndoState=
+    False, entity=mdb.models['Model-1'].sketches['__profile__'].geometry[16])
+mdb.models['Model-1'].sketches['__profile__'].PerpendicularConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[2], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[16])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[10], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[11])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.303535, 0.403535), 
+    point2=(0.303535, 0.50353499995444))
+mdb.models['Model-1'].sketches['__profile__'].VerticalConstraint(addUndoState=
+    False, entity=mdb.models['Model-1'].sketches['__profile__'].geometry[17])
+mdb.models['Model-1'].sketches['__profile__'].PerpendicularConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[2], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[17])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[11], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[11])
+mdb.models['Model-1'].rootAssembly.PartitionFaceBySketch(faces=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#800 ]', ), ), sketch=mdb.models['Model-1'].sketches['__profile__'], 
+    sketchUpEdge=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].edges[23])
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].ConstrainedSketch(gridSpacing=0.07, name='__profile__', 
+    sheetSize=2.82, transform=
+    mdb.models['Model-1'].rootAssembly.MakeSketchTransform(
+    sketchPlane=mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces[0], 
+    sketchPlaneSide=SIDE1, 
+    sketchUpEdge=mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].edges[31], 
+    sketchOrientation=RIGHT, origin=(0.5, 0.6, 0.0)))
+mdb.models['Model-1'].rootAssembly.projectReferencesOntoSketch(filter=
+    COPLANAR_EDGES, sketch=mdb.models['Model-1'].sketches['__profile__'])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.5, 0.4), point2=(
+    -0.4, 0.4))
+mdb.models['Model-1'].sketches['__profile__'].HorizontalConstraint(
+    addUndoState=False, entity=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[22])
+mdb.models['Model-1'].sketches['__profile__'].ParallelConstraint(addUndoState=
+    False, entity1=mdb.models['Model-1'].sketches['__profile__'].geometry[8], 
+    entity2=mdb.models['Model-1'].sketches['__profile__'].geometry[22])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[12], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[4])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.5, 0.4), point2=(
+    0.6, 0.4))
+mdb.models['Model-1'].sketches['__profile__'].HorizontalConstraint(
+    addUndoState=False, entity=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[23])
+mdb.models['Model-1'].sketches['__profile__'].ParallelConstraint(addUndoState=
+    False, entity1=mdb.models['Model-1'].sketches['__profile__'].geometry[8], 
+    entity2=mdb.models['Model-1'].sketches['__profile__'].geometry[23])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[13], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[19])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.5, 0.3), point2=(
+    0.6, 0.3))
+mdb.models['Model-1'].sketches['__profile__'].HorizontalConstraint(
+    addUndoState=False, entity=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[24])
+mdb.models['Model-1'].sketches['__profile__'].ParallelConstraint(addUndoState=
+    False, entity1=mdb.models['Model-1'].sketches['__profile__'].geometry[11], 
+    entity2=mdb.models['Model-1'].sketches['__profile__'].geometry[24])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[14], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[19])
+mdb.models['Model-1'].sketches['__profile__'].Line(point1=(0.4, 0.3), point2=(
+    -0.4, 0.3))
+mdb.models['Model-1'].sketches['__profile__'].HorizontalConstraint(
+    addUndoState=False, entity=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[25])
+mdb.models['Model-1'].sketches['__profile__'].PerpendicularConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[6], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[25])
+mdb.models['Model-1'].sketches['__profile__'].CoincidentConstraint(
+    addUndoState=False, entity1=
+    mdb.models['Model-1'].sketches['__profile__'].vertices[15], entity2=
+    mdb.models['Model-1'].sketches['__profile__'].geometry[4])
+mdb.models['Model-1'].rootAssembly.PartitionFaceBySketch(faces=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].faces.getSequenceFromMask(
+    ('[#4007 ]', ), ), sketch=mdb.models['Model-1'].sketches['__profile__'], 
+    sketchUpEdge=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].edges[31])
+del mdb.models['Model-1'].sketches['__profile__']
+mdb.models['Model-1'].rootAssembly.setMeshControls(regions=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].cells.getSequenceFromMask(
+    ('[#3 ]', ), ), technique=BOTTOM_UP)
+mdb.models['Model-1'].rootAssembly.setMeshControls(algorithm=ADVANCING_FRONT, 
+    elemShape=HEX_DOMINATED, regions=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].cells.getSequenceFromMask(
+    ('[#3 ]', ), ), technique=SWEEP)
+#* Error: Some regions cannot be Swept/Revolved
+mdb.meshEditOptions.setValues(enableUndo=True, maxUndoCacheElements=0.5)
+mdb.models['Model-1'].rootAssembly.seedPartInstance(deviationFactor=0.1, 
+    minSizeFactor=0.1, regions=(
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'], ), size=0.01)
+mdb.models['Model-1'].rootAssembly.setMeshControls(algorithm=ADVANCING_FRONT, 
+    regions=
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'].cells.getSequenceFromMask(
+    ('[#1 ]', ), ), technique=SWEEP)
+# Save by u2123472 on 2024_02_15-15.40.50; build 2023 2022_09_28-19.11.55 183150
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+
+
+
+mdb.models['Model-1'].rootAssembly.makeDependent(instances=(
+    mdb.models['Model-1'].rootAssembly.instances['NanComp-1'], ))
+mdb.models['Model-1'].parts['NanComp'].seedPart(deviationFactor=0.1, 
+    minSizeFactor=0.1, size=0.1)
+mdb.models['Model-1'].parts['NanComp'].generateMesh()
+mdb.models['Model-1'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#2 ]', 
+    ), ), technique=FREE)
+mdb.models['Model-1'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=C3D20R, elemLibrary=STANDARD), ElemType(elemCode=C3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=C3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#2 ]', ), ), ))
+mdb.models['Model-1'].parts['NanComp'].deleteMesh(regions=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#1 ]', 
+    ), ))
+mdb.models['Model-1'].parts['NanComp'].setMeshControls(elemShape=TET, regions=
+    mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask(('[#3 ]', 
+    ), ), technique=FREE)
+mdb.models['Model-1'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=C3D20R, elemLibrary=STANDARD), ElemType(elemCode=C3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=C3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['Model-1'].parts['NanComp'].generateMesh()
+mdb.models['Model-1'].rootAssembly.regenerate()
+
+
+
+
+
+
+
+mdb.Job(atTime=None, contactPrint=OFF, description='', echoPrint=OFF, 
+    explicitPrecision=SINGLE, getMemoryFromAnalysis=True, historyPrint=OFF, 
+    memory=90, memoryUnits=PERCENTAGE, model='Model-1', modelPrint=OFF, 
+    multiprocessingMode=DEFAULT, name='Job-1', nodalOutputPrecision=SINGLE, 
+    numCpus=1, numGPUs=0, numThreadsPerMpiProcess=1, queue=None, resultsFormat=
+    ODB, scratch='', type=ANALYSIS, userSubroutine='', waitHours=0, 
+    waitMinutes=0)
+mdb.jobs['Job-1'].submit(consistencyChecking=OFF)
+mdb.jobs['Job-1']._Message(STARTED, {'phase': BATCHPRE_PHASE, 
+    'clientHost': 'SOEVDI-SH-57', 'handle': 0, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ERROR, {'phase': BATCHPRE_PHASE, 
+    'message': '6629 elements are missing elastic property reference. The elements have been identified in element set ErrElemMissingElasticPropRef.', 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ERROR, {'phase': BATCHPRE_PHASE, 
+    'message': 'A MASS DIFFUSION ANALYSIS IS NOT MEANINGFUL SINCE THERE ARE NO NORMALIZED CONCENTRATION DEGREES OF FREEDOM IN THE MODEL', 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ERROR, {'phase': BATCHPRE_PHASE, 
+    'message': 'ONLY DEGREES OF FREEDOM 11 AND ABOVE CAN BE ACTIVE IN THE MODEL FOR THIS PROCEDURE. CHECK THE PROCEDURE AND ELEMENT TYPES USED IN THIS MODEL.', 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ODB_FILE, {'phase': BATCHPRE_PHASE, 
+    'file': 'C:\\Users\\u2123472\\Job-1.odb', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ABORTED, {'phase': BATCHPRE_PHASE, 
+    'message': 'Analysis phase failed due to errors', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ERROR, {
+    'message': 'Analysis Input File Processor exited with an error - Please see the  Job-1.dat file for possible error messages if the file exists.', 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(JOB_ABORTED, {
+    'message': 'Analysis Input File Processor exited with an error - Please see the  Job-1.dat file for possible error messages if the file exists.', 
+    'jobName': 'Job-1'})
+mdb.models['Model-1'].parts['NanComp'].setElementType(elemTypes=(ElemType(
+    elemCode=DC3D20, elemLibrary=STANDARD), ElemType(elemCode=DC3D15, 
+    elemLibrary=STANDARD), ElemType(elemCode=DC3D10, elemLibrary=STANDARD)), 
+    regions=(mdb.models['Model-1'].parts['NanComp'].cells.getSequenceFromMask((
+    '[#3 ]', ), ), ))
+mdb.models['Model-1'].rootAssembly.regenerate()
+mdb.jobs['Job-1'].submit(consistencyChecking=OFF)
+mdb.jobs['Job-1']._Message(STARTED, {'phase': BATCHPRE_PHASE, 
+    'clientHost': 'SOEVDI-SH-57', 'handle': 0, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ODB_FILE, {'phase': BATCHPRE_PHASE, 
+    'file': 'C:\\Users\\u2123472\\Job-1.odb', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(COMPLETED, {'phase': BATCHPRE_PHASE, 
+    'message': 'Analysis phase complete', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(STARTED, {'phase': STANDARD_PHASE, 
+    'clientHost': 'SOEVDI-SH-57', 'handle': 110256, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(STEP, {'phase': STANDARD_PHASE, 'stepId': 1, 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ODB_FRAME, {'phase': STANDARD_PHASE, 'step': 0, 
+    'frame': 0, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(MEMORY_ESTIMATE, {'phase': STANDARD_PHASE, 
+    'jobName': 'Job-1', 'memory': 73.0})
+mdb.jobs['Job-1']._Message(PHYSICAL_MEMORY, {'phase': STANDARD_PHASE, 
+    'physical_memory': 114687.0, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(MINIMUM_MEMORY, {'minimum_memory': 23.0, 
+    'phase': STANDARD_PHASE, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(ODB_FRAME, {'phase': STANDARD_PHASE, 'step': 0, 
+    'frame': 1, 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(STATUS, {'totalTime': 1.0, 'attempts': 1, 
+    'timeIncrement': 1.0, 'increment': 1, 'stepTime': 1.0, 'step': 1, 
+    'jobName': 'Job-1', 'severe': 0, 'iterations': 1, 'phase': STANDARD_PHASE, 
+    'equilibrium': 1})
+mdb.jobs['Job-1']._Message(END_STEP, {'phase': STANDARD_PHASE, 'stepId': 1, 
+    'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(COMPLETED, {'phase': STANDARD_PHASE, 
+    'message': 'Analysis phase complete', 'jobName': 'Job-1'})
+mdb.jobs['Job-1']._Message(JOB_COMPLETED, {'time': 'Thu Feb 15 15:45:17 2024', 
+    'jobName': 'Job-1'})
+# Save by u2123472 on 2024_02_15-15.45.48; build 2023 2022_09_28-19.11.55 183150
+# Save by u2123472 on 2024_02_15-15.58.23; build 2023 2022_09_28-19.11.55 183150
